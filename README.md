@@ -49,16 +49,10 @@ You can embed this form into your agency's website using an `iframe`. Keeping th
 
 ---
 
-## Pushing Local Updates to GitHub
+## Collaboration & Contributing
 
-To push future changes or updates to your GitHub repository:
-```bash
-# Add your modifications
-git add .
+This project is open-source and customizable! If you have suggestions for improvements, styling tweaks, or new features (such as adding more insurance options or new email templates):
 
-# Commit changes
-git commit -m "Describe your update here"
-
-# Push to your main branch
-git push origin main
-```
+- **Fork this repository** to adapt it for your specific agency's tools and layout.
+- **Open an issue** to report bugs, suggest features, or request improvements.
+- **Submit a pull request (PR)** with your enhancements to share them back with the community!
