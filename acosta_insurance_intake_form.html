@@ -1,98 +1,160 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acosta Insurance Group - Intake Form</title>
+    <title data-i18n="docTitle">Formulario de Cotización de Seguro</title>
+    
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-
+    
     <!-- Client-side libraries for PDF and ZIP generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         /* Custom scrollbar and minor tweaks */
         ::-webkit-scrollbar {
             width: 8px;
         }
-
         ::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
 
-        /* The !important flag ensures Tailwind grid/flex classes don't override this when hidden */
         .hidden-section {
             display: none !important;
         }
 
         .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(-5px);
+                transform: translateY(8px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
+        
+        /* Premium Gradient Animations */
+        .gradient-banner {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+        }
     </style>
 </head>
 
-<body class="bg-gray-100 text-gray-800 font-sans antialiased pb-20">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased pb-24 min-h-screen">
 
-    <!-- Sticky Header with Language Toggle -->
-    <div class="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2 text-blue-900">
-                <div class="font-serif font-bold text-2xl tracking-tighter">A</div>
-                <div class="leading-none border-l-2 border-blue-900 pl-2">
-                    <div class="font-bold text-sm tracking-widest">ACOSTA</div>
-                    <div class="text-[0.6rem] font-semibold tracking-widest text-gray-500">INSURANCE GROUP</div>
+    <!-- Sticky Header with Custom Branding Settings & Language Toggle -->
+    <div class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            
+            <!-- Logo Section -->
+            <div class="flex items-center space-x-3 text-indigo-900 cursor-pointer" onclick="toggleSettings(true)">
+                <div class="h-10 w-10 rounded-xl gradient-banner flex items-center justify-center text-white font-outfit font-extrabold text-xl shadow-md shadow-indigo-200 transition transform hover:scale-105 duration-200">
+                    <span id="logo-letter">I</span>
+                </div>
+                <div class="leading-tight">
+                    <div class="font-outfit font-bold text-base tracking-wide text-indigo-950 uppercase" id="header-brand-name">Insurance Intake</div>
+                    <div class="text-[0.65rem] font-semibold tracking-wider text-slate-500 uppercase" id="header-brand-sub" data-i18n="formDescSub">Universal Quote Form</div>
                 </div>
             </div>
-            <div>
-                <button type="button" id="lang-es"
-                    class="font-bold text-blue-700 underline mx-1 outline-none">ES</button>
-                <span class="text-gray-400">|</span>
-                <button type="button" id="lang-en"
-                    class="text-gray-500 hover:text-blue-700 mx-1 outline-none">EN</button>
+
+            <!-- Header Controls -->
+            <div class="flex items-center space-x-4">
+                <!-- Lang Switcher -->
+                <div class="bg-slate-100 p-1 rounded-full flex items-center border border-slate-200">
+                    <button type="button" id="lang-es" class="px-3 py-1 text-xs font-bold rounded-full transition-all duration-200 outline-none">ES</button>
+                    <button type="button" id="lang-en" class="px-3 py-1 text-xs font-bold rounded-full transition-all duration-200 outline-none">EN</button>
+                </div>
+                <!-- Branding Settings Toggle -->
+                <button type="button" onclick="toggleSettings()" class="text-slate-500 hover:text-indigo-600 transition p-2 rounded-full hover:bg-slate-100 outline-none" title="Customize branding">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- Main Container -->
     <div class="max-w-4xl mx-auto px-4 mt-8">
-        <div class="bg-white rounded-xl shadow-lg p-6 md:p-10 mb-8">
-            <h1 class="text-2xl md:text-3xl font-bold text-center text-blue-900 mb-2" data-i18n="formTitle">Formulario
-                de Cotización de Seguro</h1>
-            <p class="text-center text-gray-500 mb-8" data-i18n="formDesc">Complete la información a continuación o suba
-                los documentos requeridos.</p>
+        
+        <!-- Collapsible Settings Panel -->
+        <div id="settings-panel" class="hidden-section bg-white rounded-xl shadow-md border border-slate-200 p-6 mb-6 fade-in">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    <span data-i18n="brandingTitle">Configurar Marca / Agency Branding</span>
+                </h3>
+                <button type="button" onclick="toggleSettings(false)" class="text-slate-400 hover:text-slate-600 font-semibold text-xs">✕ Close</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1" data-i18n="agencyName">Nombre de la Agencia / Agency Name</label>
+                    <input type="text" id="config-brand-name" placeholder="Acosta Insurance Group" class="w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" oninput="saveBrandingConfig()">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1" data-i18n="agencySub">Subtítulo / Subtitle</label>
+                    <input type="text" id="config-brand-sub" placeholder="Intake & Quotes Form" class="w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" oninput="saveBrandingConfig()">
+                </div>
+            </div>
+            <div class="mt-4 text-xs text-slate-500" data-i18n="brandingInfo">
+                * Estos datos se guardan en este navegador y aparecerán impresos en el encabezado de los PDF generados.
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200/80 p-6 md:p-10 mb-8 transition-all duration-300">
+            <h1 class="text-3xl font-extrabold text-center text-slate-900 tracking-tight mb-2 font-outfit" id="main-form-title" data-i18n="formTitle">Formulario de Cotización de Seguro</h1>
+            <p class="text-center text-slate-500 mb-8 max-w-lg mx-auto text-sm leading-relaxed" data-i18n="formDesc">Complete la información a continuación o suba los documentos requeridos.</p>
 
             <form id="intake-form" class="space-y-10">
-
+                
                 <!-- Section: Drivers -->
-                <section>
-                    <div class="flex justify-between items-end border-b-2 border-blue-900 pb-2 mb-4">
-                        <h2 class="text-xl font-bold text-blue-900 flex items-center">
-                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
-                                </path>
-                            </svg>
+                <section class="space-y-4">
+                    <div class="flex justify-between items-end border-b border-indigo-100 pb-3 mb-6">
+                        <h2 class="text-xl font-bold text-indigo-950 flex items-center font-outfit">
+                            <span class="p-2 rounded-lg bg-indigo-50 text-indigo-700 mr-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                            </span>
                             <span data-i18n="driversSection">Conductores</span>
                         </h2>
-                        <button type="button" onclick="addDriver()"
-                            class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200 transition font-semibold"
-                            data-i18n="addDriver">+ Agregar Conductor</button>
+                        <button type="button" onclick="addDriver()" class="text-xs bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 text-indigo-700 px-3.5 py-2 rounded-lg transition-all duration-150 font-bold border border-indigo-100 shadow-sm flex items-center space-x-1 outline-none">
+                            <span>+</span> <span data-i18n="addDriver">Agregar Conductor</span>
+                        </button>
                     </div>
                     <div id="drivers-container" class="space-y-6">
                         <!-- Drivers will be injected here -->
@@ -100,20 +162,17 @@
                 </section>
 
                 <!-- Section: Vehicles -->
-                <section>
-                    <div class="flex justify-between items-end border-b-2 border-blue-900 pb-2 mb-4">
-                        <h2 class="text-xl font-bold text-blue-900 flex items-center">
-                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0">
-                                </path>
-                            </svg>
+                <section class="space-y-4">
+                    <div class="flex justify-between items-end border-b border-indigo-100 pb-3 mb-6">
+                        <h2 class="text-xl font-bold text-indigo-950 flex items-center font-outfit">
+                            <span class="p-2 rounded-lg bg-indigo-50 text-indigo-700 mr-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+                            </span>
                             <span data-i18n="vehiclesSection">Vehículos</span>
                         </h2>
-                        <button type="button" onclick="addVehicle()"
-                            class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200 transition font-semibold"
-                            data-i18n="addVehicle">+ Agregar Vehículo</button>
+                        <button type="button" onclick="addVehicle()" class="text-xs bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 text-indigo-700 px-3.5 py-2 rounded-lg transition-all duration-150 font-bold border border-indigo-100 shadow-sm flex items-center space-x-1 outline-none">
+                            <span>+</span> <span data-i18n="addVehicle">Agregar Vehículo</span>
+                        </button>
                     </div>
                     <div id="vehicles-container" class="space-y-6">
                         <!-- Vehicles will be injected here -->
@@ -121,116 +180,102 @@
                 </section>
 
                 <!-- Section: Previous Insurance -->
-                <section class="bg-gray-50 p-5 rounded-lg border border-gray-200 fade-in">
-                    <h2 class="text-xl font-bold text-blue-900 mb-4 border-b pb-2 flex items-center">
-                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                            </path>
-                        </svg>
+                <section class="bg-slate-50 p-6 rounded-2xl border border-slate-200/70 fade-in">
+                    <h2 class="text-lg font-bold text-slate-900 mb-5 pb-2 flex items-center font-outfit border-b border-slate-200">
+                        <span class="p-1.5 rounded bg-indigo-50 text-indigo-600 mr-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </span>
                         <span data-i18n="prevInsuranceSection">Seguro Anterior</span>
                     </h2>
-
-                    <div class="mb-4 flex space-x-6">
-                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
-                            <input type="radio" name="ins_mode" value="upload" checked
-                                class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
-                            <span data-i18n="uploadDecPage">Subir Página de Declaración</span>
-                        </label>
-                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
-                            <input type="radio" name="ins_mode" value="manual"
-                                class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
-                            <span data-i18n="enterManually">Ingresar Manualmente</span>
-                        </label>
-                    </div>
-
-                    <div id="ins_upload_section">
-                        <input type="file" id="ins_file" accept="image/*,.pdf"
-                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                    </div>
-
-                    <div id="ins_manual_section" class="hidden-section grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                                data-i18n="companyName">Nombre de Compañía</label><input type="text" id="ins_company"
-                                class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                    
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- File upload -->
+                        <div class="bg-white p-4 rounded-xl border border-dashed border-slate-300 hover:border-indigo-400 transition">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2" data-i18n="uploadDecPage">Subir Página de Declaraciones (PDF / Imagen)</label>
+                            <input type="file" id="ins_file" accept="image/*,.pdf" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer outline-none">
                         </div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                                data-i18n="expirationDate">Fecha de Vencimiento</label><input type="date" id="ins_exp"
-                                class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
-                        </div>
-                        <div class="md:col-span-2"><label
-                                class="block text-xs font-semibold text-gray-600 uppercase mb-1"
-                                data-i18n="policyNumber">Número de Póliza</label><input type="text" id="ins_policy"
-                                class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+
+                        <!-- Manual details -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="companyName">Nombre de Compañía</label>
+                                <input type="text" id="ins_company" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="expirationDate">Fecha de Vencimiento</label>
+                                <input type="date" id="ins_exp" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="policyNumber">Número de Póliza</label>
+                                <input type="text" id="ins_policy" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 <!-- Section: Coverages -->
-                <section class="bg-gray-50 p-5 rounded-lg border border-gray-200">
-                    <h2 class="text-xl font-bold text-blue-900 mb-4 border-b pb-2 flex items-center">
-                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                            </path>
-                        </svg>
+                <section class="bg-slate-50 p-6 rounded-2xl border border-slate-200/70">
+                    <h2 class="text-lg font-bold text-slate-900 mb-5 pb-2 flex items-center font-outfit border-b border-slate-200">
+                        <span class="p-1.5 rounded bg-indigo-50 text-indigo-600 mr-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        </span>
                         <span data-i18n="coverageSection">Opciones de Cobertura</span>
                     </h2>
-
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2" data-i18n="coverageType">Tipo
-                                de Cobertura Deseada</label>
-                            <select id="cov_type"
-                                class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="Full Coverage" data-i18n="fullCoverage">Cobertura Completa (Full
-                                    Coverage)</option>
-                                <option value="Minimum Required" data-i18n="minimumCoverage">Mínima Requerida por Ley
-                                </option>
+                            <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="coverageType">Tipo de Cobertura Deseada</label>
+                            <select id="cov_type" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                                <option value="Full Coverage" data-i18n="fullCoverage">Cobertura Completa (Full Coverage)</option>
+                                <option value="Minimum Required" data-i18n="minimumCoverage">Mínima Requerida por Ley</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2" data-i18n="pipAmount">Cantidad
-                                de PIP (Protección de Lesiones)</label>
-                            <input type="text" id="cov_pip_amount" placeholder="$10,000"
-                                class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                            <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="pipAmount">Cantidad de PIP (Protección de Lesiones)</label>
+                            <input type="text" id="cov_pip_amount" placeholder="$10,000" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2"
-                                data-i18n="otherCovRequests">Si necesita otra cobertura o tiene notas, indíquelo
-                                aquí:</label>
-                            <textarea id="cov_notes" rows="3"
-                                class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                            <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1.5" data-i18n="otherCovRequests">Si necesita otra cobertura o tiene notas, indíquelo aquí:</label>
+                            <textarea id="cov_notes" rows="3" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition"></textarea>
                         </div>
                     </div>
                 </section>
 
-                <!-- Submit Button -->
-                <div class="text-center pt-6">
-                    <button type="submit" id="submit-btn"
-                        class="w-full md:w-auto px-8 py-4 bg-blue-800 text-white font-bold text-lg rounded-lg shadow-lg hover:bg-blue-900 transition flex justify-center items-center mx-auto outline-none">
-                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                            </path>
-                        </svg>
+                <!-- Actions Section -->
+                <div class="flex flex-col md:flex-row justify-center items-center gap-4 pt-6">
+                    <!-- Submit / Download Button -->
+                    <button type="button" id="submit-btn" onclick="triggerSubmit('download')" class="w-full md:w-auto px-6 py-4 bg-indigo-900 text-white font-bold text-base rounded-xl shadow-lg shadow-indigo-150 hover:bg-indigo-950 active:scale-[0.98] transition-all flex justify-center items-center gap-2 outline-none">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         <span data-i18n="generateDocBtn">Generar Paquete de Cotización (PDF/ZIP)</span>
                     </button>
-                    <p class="text-xs text-gray-500 mt-3" data-i18n="privacyNotice">Toda la información se procesa
-                        localmente en su dispositivo para su privacidad.</p>
+
+                    <!-- Send Gmail Button -->
+                    <button type="button" id="gmail-btn" onclick="triggerSubmit('gmail')" class="w-full md:w-auto px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-bold text-base rounded-xl shadow-lg shadow-red-150 active:scale-[0.98] transition-all flex justify-center items-center gap-2 outline-none">
+                        <!-- Gmail SVG Icon -->
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                        </svg>
+                        <span data-i18n="sendGmailBtn">Enviar por Gmail</span>
+                    </button>
+                </div>
+                <div class="text-center">
+                    <p class="text-[0.7rem] text-slate-400" data-i18n="privacyNotice">Toda la información se procesa localmente en su dispositivo para su privacidad.</p>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Custom Modal instead of window.alert() -->
-    <div id="custom-modal"
-        class="fixed inset-0 bg-black bg-opacity-50 hidden z-[100] flex items-center justify-center fade-in">
-        <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl text-center">
-            <h3 class="text-lg font-bold text-blue-900 mb-2" id="modal-title">Aviso</h3>
-            <p class="text-gray-600 mb-6" id="modal-message">Mensaje</p>
-            <button type="button" onclick="closeModal()"
-                class="w-full bg-blue-800 text-white py-2 rounded font-semibold hover:bg-blue-900 transition outline-none">OK</button>
+    <!-- Notification Modal -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[100] flex items-center justify-center fade-in">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center border border-slate-100">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-50 text-indigo-600 mb-4" id="modal-icon-bg">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" id="modal-icon-svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-outfit" id="modal-title">Aviso</h3>
+            <p class="text-sm text-slate-600 mb-6 leading-relaxed whitespace-pre-line" id="modal-message">Mensaje</p>
+            <button type="button" onclick="closeModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-bold transition shadow-md outline-none">OK</button>
         </div>
     </div>
 
@@ -238,20 +283,23 @@
         /* --- State & Configuration --- */
         let currentLang = 'es';
         let internalIdCounter = 0; // Unique ID to avoid conflicts when removing/adding elements
+        let customBrandName = '';
+        let customBrandSub = '';
 
         const translations = {
             es: {
+                docTitle: "Formulario de Cotización de Seguro",
                 formTitle: "Formulario de Cotización de Seguro",
-                formDesc: "Complete la información a continuación o suba los documentos requeridos. Se generará un archivo listo para su agente.",
+                formDesc: "Complete la información a continuación o adjunte los documentos correspondientes. Se generará un archivo PDF o ZIP listo para su agente.",
+                formDescSub: "Formulario de Intake Universal",
                 driversSection: "Conductores",
-                addDriver: "+ Agregar Conductor",
+                addDriver: "Agregar Conductor",
                 driverTitle: "Conductor",
-                uploadLicense: "Subir Foto de Licencia",
-                enterManually: "Ingresar Manualmente",
+                uploadLicense: "Foto de Licencia de Conducir (Opcional)",
                 fullName: "Nombre Completo",
                 address: "Dirección",
                 phone: "Teléfono",
-                dob: "Fecha de Nac.",
+                dob: "Fecha de Nacimiento",
                 licenseNum: "Número de Licencia",
                 email: "Correo Electrónico",
                 occupation: "Ocupación",
@@ -266,9 +314,9 @@
                 tenant: "Inquilino",
                 remove: "Eliminar",
                 vehiclesSection: "Vehículos",
-                addVehicle: "+ Agregar Vehículo",
+                addVehicle: "Agregar Vehículo",
                 vehicleTitle: "Vehículo",
-                uploadRegistration: "Subir Registro",
+                uploadRegistration: "Registro de Vehículo (Opcional)",
                 vin: "Número VIN",
                 year: "Año",
                 makeModel: "Marca y Modelo",
@@ -284,7 +332,7 @@
                 financed: "Financiado",
                 bankInfo: "Nombre del Banco y Dirección",
                 prevInsuranceSection: "Seguro Anterior",
-                uploadDecPage: "Subir Página de Declaración",
+                uploadDecPage: "Subir Página de Declaraciones (Opcional)",
                 companyName: "Nombre de Compañía",
                 expirationDate: "Fecha de Vencimiento",
                 policyNumber: "Número de Póliza",
@@ -294,22 +342,35 @@
                 minimumCoverage: "Mínima Requerida por Ley",
                 pipAmount: "Cantidad de PIP (Protección de Lesiones)",
                 otherCovRequests: "Si necesita otra cobertura o tiene notas, indíquelo aquí:",
-                generateDocBtn: "Generar Paquete de Cotización (PDF/ZIP)",
+                generateDocBtn: "Descargar Paquete (PDF/ZIP)",
+                sendGmailBtn: "Enviar por Gmail",
                 privacyNotice: "Toda la información se procesa localmente en su dispositivo para su privacidad y seguridad.",
-                fileProvidedText: "Documento proporcionado como archivo adjunto en el ZIP.",
                 processing: "Procesando...",
                 successTitle: "¡Éxito!",
                 errorTitle: "Error",
-                generateError: "Hubo un error al generar el documento. Por favor, intente de nuevo."
+                generateError: "Hubo un error al generar el documento. Por favor, intente de nuevo.",
+                brandingTitle: "Personalizar Encabezado / Agency Branding",
+                agencyName: "Nombre de la Agencia",
+                agencySub: "Subtítulo / Especialidad",
+                brandingInfo: "* La personalización de marca se guarda localmente en el navegador y se aplicará a todos los PDF que genere en esta computadora.",
+                yes: "Sí",
+                no: "No",
+                fileAttachedText: "Archivo adjunto en el paquete ZIP",
+                fileAttachedHeader: "Archivo Adjunto",
+                gmailSuccessTitle: "¡Formulario listo para Gmail!",
+                gmailSuccessMsg: "1. Se ha descargado el paquete (PDF/ZIP) a su computadora.\n2. El resumen de datos se copió a su portapapeles.\n3. Se abrió Gmail en una nueva pestaña.\n\nPara enviarlo:\n- Haga clic en el cuerpo del correo en Gmail y pulse 'Ctrl + V' para pegar la información.\n- Arrastre el archivo descargado directamente a la ventana de Gmail para adjuntarlo.",
+                downloadSuccessTitle: "¡Descarga Exitosa!",
+                downloadSuccessMsg: "Su archivo de intake ha sido generado y descargado exitosamente."
             },
             en: {
+                docTitle: "Insurance Quote Intake Form",
                 formTitle: "Insurance Quote Intake Form",
-                formDesc: "Fill out the information below or upload the required documents. A ready-to-send file will be generated for your agent.",
+                formDesc: "Fill out the information below or attach the corresponding documents. A PDF or ZIP file ready for your agent will be generated.",
+                formDescSub: "Universal Quote Form",
                 driversSection: "Drivers",
-                addDriver: "+ Add Driver",
+                addDriver: "Add Driver",
                 driverTitle: "Driver",
-                uploadLicense: "Upload License Photo",
-                enterManually: "Enter Manually",
+                uploadLicense: "Driver's License Photo (Optional)",
                 fullName: "Full Name",
                 address: "Address",
                 phone: "Telephone",
@@ -328,9 +389,9 @@
                 tenant: "Tenant/Renter",
                 remove: "Remove",
                 vehiclesSection: "Vehicles",
-                addVehicle: "+ Add Vehicle",
+                addVehicle: "Add Vehicle",
                 vehicleTitle: "Vehicle",
-                uploadRegistration: "Upload Registration",
+                uploadRegistration: "Vehicle Registration (Optional)",
                 vin: "VIN Number",
                 year: "Year",
                 makeModel: "Make and Model",
@@ -346,7 +407,7 @@
                 financed: "Financed",
                 bankInfo: "Bank Name and Address",
                 prevInsuranceSection: "Previous Insurance",
-                uploadDecPage: "Upload Declaration Page",
+                uploadDecPage: "Upload Declaration Page (Optional)",
                 companyName: "Company Name",
                 expirationDate: "Expiration Date",
                 policyNumber: "Policy Number",
@@ -356,36 +417,112 @@
                 minimumCoverage: "Minimum Required by Law",
                 pipAmount: "PIP Amount (Personal Injury Protection)",
                 otherCovRequests: "If you need another coverage or have notes, please request it here:",
-                generateDocBtn: "Generate Quote Package (PDF/ZIP)",
+                generateDocBtn: "Download Package (PDF/ZIP)",
+                sendGmailBtn: "Send via Gmail",
                 privacyNotice: "All information is processed locally on your device for privacy and security.",
-                fileProvidedText: "Document provided as an attachment in the ZIP file.",
                 processing: "Processing...",
                 successTitle: "Success!",
                 errorTitle: "Error",
-                generateError: "There was an error generating the document. Please try again."
+                generateError: "There was an error generating the document. Please try again.",
+                brandingTitle: "Configure Header / Agency Branding",
+                agencyName: "Agency Name",
+                agencySub: "Subtitle / Specialty",
+                brandingInfo: "* Agency customizations are saved locally in the browser and will apply to all generated PDFs on this computer.",
+                yes: "Yes",
+                no: "No",
+                fileAttachedText: "Attached file in the ZIP package",
+                fileAttachedHeader: "File Attached",
+                gmailSuccessTitle: "Ready for Gmail!",
+                gmailSuccessMsg: "1. The quote package (PDF/ZIP) has been downloaded to your computer.\n2. The summary data has been copied to your clipboard.\n3. Gmail has been opened in a new tab.\n\nTo send it:\n- Click in the email compose body and press 'Ctrl + V' to paste the details.\n- Drag-and-drop the downloaded file directly into Gmail to attach it.",
+                downloadSuccessTitle: "Download Success!",
+                downloadSuccessMsg: "Your quote intake document has been successfully generated and downloaded."
             }
         };
 
         /* --- Initialization --- */
         document.addEventListener('DOMContentLoaded', () => {
+            loadBrandingConfig();
             addDriver();
             addVehicle();
             setupLangToggles();
-            setupInsuranceToggle();
             updateLanguage();
-
-            // Form Submit Logic
-            document.getElementById('intake-form').addEventListener('submit', handleFormSubmit);
         });
 
-        /* --- UI Logic --- */
+        /* --- Custom Branding Logic --- */
+        function toggleSettings(forceOpen) {
+            const panel = document.getElementById('settings-panel');
+            if (forceOpen === true) {
+                panel.classList.remove('hidden-section');
+            } else if (forceOpen === false) {
+                panel.classList.add('hidden-section');
+            } else {
+                panel.classList.toggle('hidden-section');
+            }
+        }
+
+        function loadBrandingConfig() {
+            customBrandName = localStorage.getItem('customBrandName') || '';
+            customBrandSub = localStorage.getItem('customBrandSub') || '';
+
+            document.getElementById('config-brand-name').value = customBrandName;
+            document.getElementById('config-brand-sub').value = customBrandSub;
+
+            applyBrandingUI();
+        }
+
+        function saveBrandingConfig() {
+            customBrandName = document.getElementById('config-brand-name').value.trim();
+            customBrandSub = document.getElementById('config-brand-sub').value.trim();
+
+            localStorage.setItem('customBrandName', customBrandName);
+            localStorage.setItem('customBrandSub', customBrandSub);
+
+            applyBrandingUI();
+        }
+
+        function applyBrandingUI() {
+            const titleEl = document.getElementById('header-brand-name');
+            const subEl = document.getElementById('header-brand-sub');
+            const logoEl = document.getElementById('logo-letter');
+
+            if (customBrandName) {
+                titleEl.innerText = customBrandName;
+                logoEl.innerText = customBrandName.charAt(0).toUpperCase();
+            } else {
+                titleEl.innerText = "Insurance Intake";
+                logoEl.innerText = "I";
+            }
+
+            if (customBrandSub) {
+                subEl.innerText = customBrandSub;
+            } else {
+                subEl.innerText = t('formDescSub');
+            }
+        }
+
+        /* --- UI Language Logic --- */
         function t(key) {
             return translations[currentLang][key] || key;
         }
 
-        function showModal(title, message) {
+        function showModal(title, message, iconType = 'info') {
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-message').innerText = message;
+            
+            const iconBg = document.getElementById('modal-icon-bg');
+            const iconSvg = document.getElementById('modal-icon-svg');
+            
+            if (iconType === 'success') {
+                iconBg.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-50 text-green-600 mb-4";
+                iconSvg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />`;
+            } else if (iconType === 'error') {
+                iconBg.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-50 text-red-600 mb-4";
+                iconSvg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />`;
+            } else {
+                iconBg.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-50 text-indigo-600 mb-4";
+                iconSvg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`;
+            }
+
             document.getElementById('custom-modal').classList.remove('hidden');
         }
 
@@ -404,6 +541,7 @@
                     }
                 }
             });
+            applyBrandingUI();
             updateIndices(); // Refresh the labels that say "Driver 1", "Vehicle 2", etc.
         }
 
@@ -414,49 +552,30 @@
             const setLang = (lang) => {
                 currentLang = lang;
                 if (lang === 'es') {
-                    btnEs.classList.add('font-bold', 'text-blue-700', 'underline');
-                    btnEs.classList.remove('text-gray-500', 'hover:text-blue-700');
-                    btnEn.classList.add('text-gray-500', 'hover:text-blue-700');
-                    btnEn.classList.remove('font-bold', 'text-blue-700', 'underline');
+                    btnEs.className = "px-3 py-1 text-xs font-bold rounded-full bg-white text-indigo-900 shadow-sm transition-all duration-200 outline-none";
+                    btnEn.className = "px-3 py-1 text-xs font-bold rounded-full text-slate-500 hover:text-slate-900 transition-all duration-200 outline-none";
                 } else {
-                    btnEn.classList.add('font-bold', 'text-blue-700', 'underline');
-                    btnEn.classList.remove('text-gray-500', 'hover:text-blue-700');
-                    btnEs.classList.add('text-gray-500', 'hover:text-blue-700');
-                    btnEs.classList.remove('font-bold', 'text-blue-700', 'underline');
+                    btnEn.className = "px-3 py-1 text-xs font-bold rounded-full bg-white text-indigo-900 shadow-sm transition-all duration-200 outline-none";
+                    btnEs.className = "px-3 py-1 text-xs font-bold rounded-full text-slate-500 hover:text-slate-900 transition-all duration-200 outline-none";
                 }
                 updateLanguage();
             };
 
             btnEs.addEventListener('click', () => setLang('es'));
             btnEn.addEventListener('click', () => setLang('en'));
+            
+            // Set initial state
+            setLang('es');
         }
 
-        function setupInsuranceToggle() {
-            document.querySelectorAll('input[name="ins_mode"]').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    const uploadSec = document.getElementById('ins_upload_section');
-                    const manualSec = document.getElementById('ins_manual_section');
-                    if (e.target.value === 'upload') {
-                        uploadSec.classList.remove('hidden-section');
-                        manualSec.classList.add('hidden-section');
-                    } else {
-                        uploadSec.classList.add('hidden-section');
-                        manualSec.classList.remove('hidden-section');
-                    }
-                });
-            });
-        }
-
-        /* --- Dynamic Form Elements --- */
+        /* --- Dynamic Form Templates --- */
         function updateIndices() {
-            // Update drivers numbering
             const driverItems = document.querySelectorAll('.driver-item');
             driverItems.forEach((item, index) => {
                 const titleSpan = item.querySelector('.driver-num-title');
                 if (titleSpan) titleSpan.innerText = `${t('driverTitle')} ${index + 1}`;
             });
 
-            // Update vehicles numbering
             const vehicleItems = document.querySelectorAll('.vehicle-item');
             vehicleItems.forEach((item, index) => {
                 const titleSpan = item.querySelector('.vehicle-num-title');
@@ -468,140 +587,146 @@
             const id = internalIdCounter++;
             const container = document.getElementById('drivers-container');
             const html = `
-                <div id="driver_block_${id}" class="bg-gray-50 p-5 rounded-lg border border-gray-200 relative fade-in driver-item" data-id="${id}">
-                    <button type="button" onclick="removeElement('driver_block_${id}')" class="absolute top-4 right-4 text-red-500 hover:text-red-700 text-sm font-semibold outline-none" data-i18n="remove">${t('remove')}</button>
-                    <h3 class="font-bold text-lg text-gray-700 mb-3 driver-num-title">${t('driverTitle')}</h3>
+                <div id="driver_block_${id}" class="bg-slate-50 p-6 rounded-2xl border border-slate-200 relative fade-in driver-item" data-id="${id}">
+                    <button type="button" onclick="removeElement('driver_block_${id}')" class="absolute top-5 right-5 text-slate-400 hover:text-red-500 text-xs font-bold transition flex items-center gap-1 outline-none" data-i18n="remove">
+                        ✕ ${t('remove')}
+                    </button>
+                    <h3 class="font-outfit font-bold text-lg text-slate-900 mb-5 driver-num-title">${t('driverTitle')}</h3>
                     
-                    <div class="mb-4 flex space-x-6">
-                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
-                            <input type="radio" name="driver_mode_${id}" value="upload" checked class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
-                            <span data-i18n="uploadLicense">${t('uploadLicense')}</span>
-                        </label>
-                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
-                            <input type="radio" name="driver_mode_${id}" value="manual" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
-                            <span data-i18n="enterManually">${t('enterManually')}</span>
-                        </label>
-                    </div>
-
-                    <div id="driver_upload_${id}">
-                        <input type="file" id="driver_file_${id}" accept="image/*,.pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 outline-none">
-                    </div>
-
-                    <div id="driver_manual_${id}" class="hidden-section grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="fullName">${t('fullName')}</label><input type="text" id="driver_name_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="dob">${t('dob')}</label><input type="date" id="driver_dob_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="address">${t('address')}</label><input type="text" id="driver_address_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="phone">${t('phone')}</label><input type="tel" id="driver_phone_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="email">${t('email')}</label><input type="email" id="driver_email_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="licenseNum">${t('licenseNum')}</label><input type="text" id="driver_license_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="occupation">${t('occupation')}</label><input type="text" id="driver_occ_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="education">${t('education')}</label><input type="text" id="driver_edu_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                    <!-- Form layout combines upload and manual fields -->
+                    <div class="grid grid-cols-1 gap-5">
                         
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="maritalStatus">${t('maritalStatus')}</label>
-                            <select id="driver_marital_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="Single" data-i18n="single">${t('single')}</option>
-                                <option value="Married" data-i18n="married">${t('married')}</option>
-                                <option value="Divorced" data-i18n="divorced">${t('divorced')}</option>
-                                <option value="Widowed" data-i18n="widowed">${t('widowed')}</option>
-                            </select>
+                        <!-- Upload License -->
+                        <div class="bg-white p-4 rounded-xl border border-dashed border-slate-300 hover:border-indigo-400 transition">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2" data-i18n="uploadLicense">${t('uploadLicense')}</label>
+                            <input type="file" id="driver_file_${id}" accept="image/*,.pdf" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer outline-none">
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="housingStatus">${t('housingStatus')}</label>
-                            <select id="driver_housing_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="Owner" data-i18n="owner">${t('owner')}</option>
-                                <option value="Tenant" data-i18n="tenant">${t('tenant')}</option>
-                            </select>
+
+                        <!-- Manual Fields Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="fullName">${t('fullName')}</label>
+                                <input type="text" id="driver_name_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="dob">${t('dob')}</label>
+                                <input type="date" id="driver_dob_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="address">${t('address')}</label>
+                                <input type="text" id="driver_address_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="phone">${t('phone')}</label>
+                                <input type="tel" id="driver_phone_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="email">${t('email')}</label>
+                                <input type="email" id="driver_email_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="licenseNum">${t('licenseNum')}</label>
+                                <input type="text" id="driver_license_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="occupation">${t('occupation')}</label>
+                                <input type="text" id="driver_occ_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="education">${t('education')}</label>
+                                <input type="text" id="driver_edu_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="maritalStatus">${t('maritalStatus')}</label>
+                                <select id="driver_marital_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                                    <option value="Single" data-i18n="single">${t('single')}</option>
+                                    <option value="Married" data-i18n="married">${t('married')}</option>
+                                    <option value="Divorced" data-i18n="divorced">${t('divorced')}</option>
+                                    <option value="Widowed" data-i18n="widowed">${t('widowed')}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="housingStatus">${t('housingStatus')}</label>
+                                <select id="driver_housing_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                                    <option value="Owner" data-i18n="owner">${t('owner')}</option>
+                                    <option value="Tenant" data-i18n="tenant">${t('tenant')}</option>
+                                </select>
+                            </div>
                         </div>
+
                     </div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
-
-            // Toggle Logic
-            document.querySelectorAll(`input[name="driver_mode_${id}"]`).forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    const upSec = document.getElementById(`driver_upload_${id}`);
-                    const manSec = document.getElementById(`driver_manual_${id}`);
-                    if (e.target.value === 'upload') {
-                        upSec.classList.remove('hidden-section');
-                        manSec.classList.add('hidden-section');
-                    } else {
-                        upSec.classList.add('hidden-section');
-                        manSec.classList.remove('hidden-section');
-                    }
-                });
-            });
-            updateLanguage();
+            updateLanguage(); 
         }
 
         function addVehicle() {
             const id = internalIdCounter++;
             const container = document.getElementById('vehicles-container');
             const html = `
-                <div id="vehicle_block_${id}" class="bg-gray-50 p-5 rounded-lg border border-gray-200 relative fade-in vehicle-item" data-id="${id}">
-                    <button type="button" onclick="removeElement('vehicle_block_${id}')" class="absolute top-4 right-4 text-red-500 hover:text-red-700 text-sm font-semibold outline-none" data-i18n="remove">${t('remove')}</button>
-                    <h3 class="font-bold text-lg text-gray-700 mb-3 vehicle-num-title">${t('vehicleTitle')}</h3>
+                <div id="vehicle_block_${id}" class="bg-slate-50 p-6 rounded-2xl border border-slate-200 relative fade-in vehicle-item" data-id="${id}">
+                    <button type="button" onclick="removeElement('vehicle_block_${id}')" class="absolute top-5 right-5 text-slate-400 hover:text-red-500 text-xs font-bold transition flex items-center gap-1 outline-none" data-i18n="remove">
+                        ✕ ${t('remove')}
+                    </button>
+                    <h3 class="font-outfit font-bold text-lg text-slate-900 mb-5 vehicle-num-title">${t('vehicleTitle')}</h3>
                     
-                    <div class="mb-4 flex space-x-6">
-                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
-                            <input type="radio" name="vehicle_mode_${id}" value="upload" checked class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
-                            <span data-i18n="uploadRegistration">${t('uploadRegistration')}</span>
-                        </label>
-                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
-                            <input type="radio" name="vehicle_mode_${id}" value="manual" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
-                            <span data-i18n="enterManually">${t('enterManually')}</span>
-                        </label>
-                    </div>
+                    <div class="grid grid-cols-1 gap-5">
+                        
+                        <!-- Upload Registration -->
+                        <div class="bg-white p-4 rounded-xl border border-dashed border-slate-300 hover:border-indigo-400 transition">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2" data-i18n="uploadRegistration">${t('uploadRegistration')}</label>
+                            <input type="file" id="vehicle_file_${id}" accept="image/*,.pdf" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer outline-none">
+                        </div>
 
-                    <div id="vehicle_upload_${id}">
-                        <input type="file" id="vehicle_file_${id}" accept="image/*,.pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 outline-none">
-                    </div>
+                        <!-- Manual Fields Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="vin">${t('vin')}</label>
+                                <input type="text" id="vehicle_vin_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="year">${t('year')}</label>
+                                <input type="number" id="vehicle_year_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="makeModel">${t('makeModel')}</label>
+                                <input type="text" id="vehicle_make_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="yearPurchased">${t('yearPurchased')}</label>
+                                <input type="number" id="vehicle_purchased_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="milesDriven">${t('milesDriven')}</label>
+                                <input type="number" id="vehicle_miles_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="vehiclePurpose">${t('vehiclePurpose')}</label>
+                                <select id="vehicle_purpose_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                                    <option value="Commuting" data-i18n="commuting">${t('commuting')}</option>
+                                    <option value="Pleasure" data-i18n="pleasure">${t('pleasure')}</option>
+                                    <option value="Business" data-i18n="business">${t('business')}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="leaseFinance">${t('leaseFinance')}</label>
+                                <select id="vehicle_finance_${id}" onchange="toggleBankInfo(${id})" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                                    <option value="Owned" data-i18n="noneOwn">${t('noneOwn')}</option>
+                                    <option value="Leased" data-i18n="leased">${t('leased')}</option>
+                                    <option value="Financed" data-i18n="financed">${t('financed')}</option>
+                                </select>
+                            </div>
+                            <div id="vehicle_bank_container_${id}" class="hidden-section">
+                                <label class="block text-[0.68rem] font-bold text-slate-500 uppercase tracking-wider mb-1" data-i18n="bankInfo">${t('bankInfo')}</label>
+                                <input type="text" id="vehicle_bank_${id}" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                            </div>
+                        </div>
 
-                    <div id="vehicle_manual_${id}" class="hidden-section grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="vin">${t('vin')}</label><input type="text" id="vehicle_vin_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="year">${t('year')}</label><input type="number" id="vehicle_year_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="makeModel">${t('makeModel')}</label><input type="text" id="vehicle_make_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="yearPurchased">${t('yearPurchased')}</label><input type="number" id="vehicle_purchased_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="milesDriven">${t('milesDriven')}</label><input type="number" id="vehicle_miles_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="vehiclePurpose">${t('vehiclePurpose')}</label>
-                            <select id="vehicle_purpose_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="Commuting" data-i18n="commuting">${t('commuting')}</option>
-                                <option value="Pleasure" data-i18n="pleasure">${t('pleasure')}</option>
-                                <option value="Business" data-i18n="business">${t('business')}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="leaseFinance">${t('leaseFinance')}</label>
-                            <select id="vehicle_finance_${id}" onchange="toggleBankInfo(${id})" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="Owned" data-i18n="noneOwn">${t('noneOwn')}</option>
-                                <option value="Leased" data-i18n="leased">${t('leased')}</option>
-                                <option value="Financed" data-i18n="financed">${t('financed')}</option>
-                            </select>
-                        </div>
-                        <div id="vehicle_bank_container_${id}" class="hidden-section">
-                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="bankInfo">${t('bankInfo')}</label>
-                            <input type="text" id="vehicle_bank_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
-                        </div>
                     </div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
-
-            document.querySelectorAll(`input[name="vehicle_mode_${id}"]`).forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    const upSec = document.getElementById(`vehicle_upload_${id}`);
-                    const manSec = document.getElementById(`vehicle_manual_${id}`);
-                    if (e.target.value === 'upload') {
-                        upSec.classList.remove('hidden-section');
-                        manSec.classList.add('hidden-section');
-                    } else {
-                        upSec.classList.add('hidden-section');
-                        manSec.classList.remove('hidden-section');
-                    }
-                });
-            });
             updateLanguage();
         }
 
@@ -619,12 +744,11 @@
             const el = document.getElementById(elementId);
             if (el) {
                 el.remove();
-                updateIndices(); // Re-calculate the numbers so they are sequential
+                updateIndices();
             }
         }
 
-        /* --- Utilities --- */
-        // Attempt to fetch the Clearbit logo and convert to base64 for jsPDF
+        /* --- File Helper --- */
         function getBase64ImageFromUrl(imageUrl) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -643,205 +767,318 @@
             });
         }
 
-        /* --- PDF Generation & Submit Logic --- */
-        async function handleFormSubmit(e) {
-            e.preventDefault();
+        /* --- Submission Trigger --- */
+        async function triggerSubmit(actionType) {
+            const submitBtn = document.getElementById('submit-btn');
+            const gmailBtn = document.getElementById('gmail-btn');
+            
+            const originalSubmitText = submitBtn.innerHTML;
+            const originalGmailText = gmailBtn.innerHTML;
 
-            const btn = document.getElementById('submit-btn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = t('processing');
-            btn.disabled = true;
+            submitBtn.disabled = true;
+            gmailBtn.disabled = true;
+            
+            if (actionType === 'gmail') {
+                gmailBtn.innerHTML = t('processing');
+            } else {
+                submitBtn.innerHTML = t('processing');
+            }
 
             try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const zip = new JSZip();
-                let filesAttached = false;
-
-                // --- PDF HEADER (Logo Logic) ---
-                let logoLoaded = false;
-                try {
-                    // Try to fetch official logo from clearbit
-                    const logoBase64 = await getBase64ImageFromUrl('https://logo.clearbit.com/acostainsurance.com');
-                    doc.addImage(logoBase64, 'PNG', 14, 10, 40, 40); // Attempt to place it nicely
-                    logoLoaded = true;
-                } catch (e) {
-                    // Silently fail and use fallback text logo
-                    console.log("Logo could not be fetched, using fallback styling.");
-                }
-
-                if (!logoLoaded) {
-                    // Fallback Styled Text Logo
-                    doc.setFont("helvetica", "bold");
-                    doc.setTextColor(23, 54, 93); // Blue-900 equivalent
-                    doc.setFontSize(28);
-                    doc.text("A", 14, 20);
-
-                    doc.setFontSize(14);
-                    doc.text("ACOSTA", 24, 16);
-                    doc.setFontSize(8);
-                    doc.setTextColor(100, 100, 100);
-                    doc.text("INSURANCE GROUP", 24, 21);
-                }
-
-                doc.setDrawColor(23, 54, 93);
-                doc.setLineWidth(0.5);
-                doc.line(14, 26, 196, 26);
-
-                doc.setFontSize(16);
-                doc.setTextColor(0, 0, 0);
-                doc.text(t('formTitle'), 14, 34);
-
-                let currentY = 42;
-
-                // Helper to render tables via autoTable
-                const addSectionTable = (title, bodyData) => {
-                    if (currentY > 260) { doc.addPage(); currentY = 20; }
-                    doc.setFontSize(12);
-                    doc.setFont("helvetica", "bold");
-                    doc.setTextColor(23, 54, 93);
-                    doc.text(title, 14, currentY);
-
-                    doc.autoTable({
-                        startY: currentY + 4,
-                        theme: 'grid',
-                        headStyles: { fillColor: [23, 54, 93] },
-                        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 65 } },
-                        body: bodyData,
-                        margin: { left: 14, right: 14 }
-                    });
-                    currentY = doc.lastAutoTable.finalY + 12;
-                };
-
-                // --- DRIVERS ---
-                const driverBlocks = document.querySelectorAll('.driver-item');
-                let dCounter = 1;
-                for (const block of driverBlocks) {
-                    const id = block.getAttribute('data-id');
-                    const mode = document.querySelector(`input[name="driver_mode_${id}"]:checked`).value;
-                    let body = [];
-
-                    if (mode === 'upload') {
-                        const fileInput = document.getElementById(`driver_file_${id}`);
-                        if (fileInput.files.length > 0) {
-                            const file = fileInput.files[0];
-                            const ext = file.name.split('.').pop();
-                            zip.file(`Driver_${dCounter}_License.${ext}`, file);
-                            filesAttached = true;
-                            body.push([t('uploadLicense'), t('fileProvidedText')]);
-                        } else {
-                            body.push([t('uploadLicense'), 'No file uploaded / Ningún archivo subido']);
-                        }
-                    } else {
-                        const getVal = (field) => document.getElementById(`driver_${field}_${id}`).value || '-';
-                        body = [
-                            [t('fullName'), getVal('name')],
-                            [t('dob'), getVal('dob')],
-                            [t('address'), getVal('address')],
-                            [t('phone'), getVal('phone')],
-                            [t('email'), getVal('email')],
-                            [t('licenseNum'), getVal('license')],
-                            [t('occupation'), getVal('occ')],
-                            [t('education'), getVal('edu')],
-                            [t('maritalStatus'), document.getElementById(`driver_marital_${id}`).options[document.getElementById(`driver_marital_${id}`).selectedIndex].text],
-                            [t('housingStatus'), document.getElementById(`driver_housing_${id}`).options[document.getElementById(`driver_housing_${id}`).selectedIndex].text],
-                        ];
-                    }
-                    addSectionTable(`${t('driverTitle')} ${dCounter}`, body);
-                    dCounter++;
-                }
-
-                // --- VEHICLES ---
-                const vehicleBlocks = document.querySelectorAll('.vehicle-item');
-                let vCounter = 1;
-                for (const block of vehicleBlocks) {
-                    const id = block.getAttribute('data-id');
-                    const mode = document.querySelector(`input[name="vehicle_mode_${id}"]:checked`).value;
-                    let body = [];
-
-                    if (mode === 'upload') {
-                        const fileInput = document.getElementById(`vehicle_file_${id}`);
-                        if (fileInput.files.length > 0) {
-                            const file = fileInput.files[0];
-                            const ext = file.name.split('.').pop();
-                            zip.file(`Vehicle_${vCounter}_Registration.${ext}`, file);
-                            filesAttached = true;
-                            body.push([t('uploadRegistration'), t('fileProvidedText')]);
-                        } else {
-                            body.push([t('uploadRegistration'), 'No file uploaded / Ningún archivo subido']);
-                        }
-                    } else {
-                        const getVal = (field) => document.getElementById(`vehicle_${field}_${id}`).value || '-';
-                        const finVal = document.getElementById(`vehicle_finance_${id}`).options[document.getElementById(`vehicle_finance_${id}`).selectedIndex].text;
-                        body = [
-                            [t('vin'), getVal('vin')],
-                            [t('year'), getVal('year')],
-                            [t('makeModel'), getVal('make')],
-                            [t('yearPurchased'), getVal('purchased')],
-                            [t('milesDriven'), getVal('miles')],
-                            [t('vehiclePurpose'), document.getElementById(`vehicle_purpose_${id}`).options[document.getElementById(`vehicle_purpose_${id}`).selectedIndex].text],
-                            [t('leaseFinance'), finVal],
-                        ];
-                        if (document.getElementById(`vehicle_finance_${id}`).value !== 'Owned') {
-                            body.push([t('bankInfo'), getVal('bank')]);
-                        }
-                    }
-                    addSectionTable(`${t('vehicleTitle')} ${vCounter}`, body);
-                    vCounter++;
-                }
-
-                // --- PREVIOUS INSURANCE ---
-                const insMode = document.querySelector('input[name="ins_mode"]:checked').value;
-                let insBody = [];
-                if (insMode === 'upload') {
-                    const fileInput = document.getElementById('ins_file');
-                    if (fileInput.files.length > 0) {
-                        const file = fileInput.files[0];
-                        const ext = file.name.split('.').pop();
-                        zip.file(`Previous_Insurance_DecPage.${ext}`, file);
-                        filesAttached = true;
-                        insBody.push([t('uploadDecPage'), t('fileProvidedText')]);
-                    } else {
-                        insBody.push([t('uploadDecPage'), 'No file uploaded / Ningún archivo subido']);
-                    }
-                } else {
-                    insBody = [
-                        [t('companyName'), document.getElementById('ins_company').value || '-'],
-                        [t('expirationDate'), document.getElementById('ins_exp').value || '-'],
-                        [t('policyNumber'), document.getElementById('ins_policy').value || '-']
-                    ];
-                }
-                addSectionTable(t('prevInsuranceSection'), insBody);
-
-                // --- COVERAGES ---
-                const covTypeDropdown = document.getElementById('cov_type');
-                const covBody = [
-                    [t('coverageType'), covTypeDropdown.options[covTypeDropdown.selectedIndex].text],
-                    [t('pipAmount'), document.getElementById('cov_pip_amount').value || '-'],
-                    ['Notes / Requests', document.getElementById('cov_notes').value || '-']
-                ];
-                addSectionTable(t('coverageSection'), covBody);
-
-                // --- SAVE / EXPORT ---
-                const pdfBlob = doc.output('blob');
-
-                if (filesAttached) {
-                    zip.file("Acosta_Insurance_Form_Data.pdf", pdfBlob);
-                    const content = await zip.generateAsync({ type: "blob" });
-                    saveAs(content, "Acosta_Insurance_Quote_Package.zip");
-                } else {
-                    saveAs(pdfBlob, "Acosta_Insurance_Quote.pdf");
-                }
-
+                await processIntakeForm(actionType);
             } catch (err) {
                 console.error(err);
-                showModal(t('errorTitle'), t('generateError'));
+                showModal(t('errorTitle'), t('generateError'), 'error');
             } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                submitBtn.disabled = false;
+                gmailBtn.disabled = false;
+                submitBtn.innerHTML = originalSubmitText;
+                gmailBtn.innerHTML = originalGmailText;
             }
+        }
+
+        /* --- PDF & ZIP Compiling Logic --- */
+        async function processIntakeForm(actionType) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const zip = new JSZip();
+            let filesAttached = false;
+            let fileListForText = [];
+
+            // Draw PDF Header
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(30, 27, 75); // Deep Indigo/Slate
+            
+            // Print Custom Agency Brand Name
+            const brandTitle = customBrandName ? customBrandName.toUpperCase() : "INSURANCE INTAKE FORM";
+            const brandSubtitle = customBrandSub ? customBrandSub : "Quote Package Summary";
+            
+            doc.setFontSize(22);
+            doc.text(brandTitle, 14, 20);
+            
+            doc.setFontSize(9);
+            doc.setTextColor(100, 116, 139);
+            doc.text(brandSubtitle, 14, 25);
+            
+            doc.setDrawColor(67, 56, 202); // Indigo line
+            doc.setLineWidth(0.7);
+            doc.line(14, 28, 196, 28);
+            
+            doc.setFontSize(14);
+            doc.setTextColor(30, 27, 75);
+            doc.text(t('formTitle'), 14, 37);
+
+            let currentY = 44;
+
+            // Helper to render tables via autoTable
+            const addSectionTable = (title, bodyData) => {
+                if (currentY > 250) { 
+                    doc.addPage(); 
+                    currentY = 20; 
+                }
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(67, 56, 202);
+                doc.text(title, 14, currentY);
+                
+                doc.autoTable({
+                    startY: currentY + 3,
+                    theme: 'grid',
+                    headStyles: { fillColor: [30, 27, 75], fontStyle: 'bold' },
+                    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 70 } },
+                    body: bodyData,
+                    margin: { left: 14, right: 14 },
+                    styles: { fontSize: 9 }
+                });
+                currentY = doc.lastAutoTable.finalY + 10;
+            };
+
+            // --- DRIVERS ---
+            const driverBlocks = document.querySelectorAll('.driver-item');
+            let dCounter = 1;
+            for (const block of driverBlocks) {
+                const id = block.getAttribute('data-id');
+                const fileInput = document.getElementById(`driver_file_${id}`);
+                let hasFile = "No";
+                
+                if (fileInput && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const ext = file.name.split('.').pop();
+                    const filename = `Driver_${dCounter}_License.${ext}`;
+                    zip.file(filename, file);
+                    filesAttached = true;
+                    hasFile = `${t('yes')} (${filename})`;
+                    fileListForText.push(filename);
+                }
+
+                const getVal = (field) => document.getElementById(`driver_${field}_${id}`).value || '-';
+                
+                const body = [
+                    [t('fileAttachedHeader'), hasFile],
+                    [t('fullName'), getVal('name')],
+                    [t('dob'), getVal('dob')],
+                    [t('address'), getVal('address')],
+                    [t('phone'), getVal('phone')],
+                    [t('email'), getVal('email')],
+                    [t('licenseNum'), getVal('license')],
+                    [t('occupation'), getVal('occ')],
+                    [t('education'), getVal('edu')],
+                    [t('maritalStatus'), document.getElementById(`driver_marital_${id}`).options[document.getElementById(`driver_marital_${id}`).selectedIndex].text],
+                    [t('housingStatus'), document.getElementById(`driver_housing_${id}`).options[document.getElementById(`driver_housing_${id}`).selectedIndex].text],
+                ];
+                
+                addSectionTable(`${t('driverTitle')} ${dCounter}`, body);
+                dCounter++;
+            }
+
+            // --- VEHICLES ---
+            const vehicleBlocks = document.querySelectorAll('.vehicle-item');
+            let vCounter = 1;
+            for (const block of vehicleBlocks) {
+                const id = block.getAttribute('data-id');
+                const fileInput = document.getElementById(`vehicle_file_${id}`);
+                let hasFile = "No";
+
+                if (fileInput && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const ext = file.name.split('.').pop();
+                    const filename = `Vehicle_${vCounter}_Registration.${ext}`;
+                    zip.file(filename, file);
+                    filesAttached = true;
+                    hasFile = `${t('yes')} (${filename})`;
+                    fileListForText.push(filename);
+                }
+
+                const getVal = (field) => document.getElementById(`vehicle_${field}_${id}`).value || '-';
+                const finVal = document.getElementById(`vehicle_finance_${id}`).options[document.getElementById(`vehicle_finance_${id}`).selectedIndex].text;
+                
+                const body = [
+                    [t('fileAttachedHeader'), hasFile],
+                    [t('vin'), getVal('vin')],
+                    [t('year'), getVal('year')],
+                    [t('makeModel'), getVal('make')],
+                    [t('yearPurchased'), getVal('purchased')],
+                    [t('milesDriven'), getVal('miles')],
+                    [t('vehiclePurpose'), document.getElementById(`vehicle_purpose_${id}`).options[document.getElementById(`vehicle_purpose_${id}`).selectedIndex].text],
+                    [t('leaseFinance'), finVal],
+                ];
+                
+                if (document.getElementById(`vehicle_finance_${id}`).value !== 'Owned') {
+                    body.push([t('bankInfo'), getVal('bank')]);
+                }
+
+                addSectionTable(`${t('vehicleTitle')} ${vCounter}`, body);
+                vCounter++;
+            }
+
+            // --- PREVIOUS INSURANCE ---
+            const insFileInput = document.getElementById('ins_file');
+            let insHasFile = "No";
+            if (insFileInput && insFileInput.files.length > 0) {
+                const file = insFileInput.files[0];
+                const ext = file.name.split('.').pop();
+                const filename = `Previous_Insurance_DecPage.${ext}`;
+                zip.file(filename, file);
+                filesAttached = true;
+                insHasFile = `${t('yes')} (${filename})`;
+                fileListForText.push(filename);
+            }
+
+            const insBody = [
+                [t('fileAttachedHeader'), insHasFile],
+                [t('companyName'), document.getElementById('ins_company').value || '-'],
+                [t('expirationDate'), document.getElementById('ins_exp').value || '-'],
+                [t('policyNumber'), document.getElementById('ins_policy').value || '-']
+            ];
+            addSectionTable(t('prevInsuranceSection'), insBody);
+
+            // --- COVERAGES ---
+            const covTypeDropdown = document.getElementById('cov_type');
+            const covBody = [
+                [t('coverageType'), covTypeDropdown.options[covTypeDropdown.selectedIndex].text],
+                [t('pipAmount'), document.getElementById('cov_pip_amount').value || '-'],
+                ['Notes / Requests', document.getElementById('cov_notes').value || '-']
+            ];
+            addSectionTable(t('coverageSection'), covBody);
+
+            // Save PDF
+            const pdfBlob = doc.output('blob');
+            const baseFileName = customBrandName ? customBrandName.replace(/\s+/g, '_') : 'Insurance_Quote';
+            
+            // Handle Download Triggering
+            let downloadedFileName = "";
+            if (filesAttached) {
+                downloadedFileName = `${baseFileName}_Package.zip`;
+                zip.file(`${baseFileName}_Data.pdf`, pdfBlob);
+                const zipContent = await zip.generateAsync({ type: "blob" });
+                saveAs(zipContent, downloadedFileName);
+            } else {
+                downloadedFileName = `${baseFileName}.pdf`;
+                saveAs(pdfBlob, downloadedFileName);
+            }
+
+            // If action is Gmail, copy summary text to clipboard and open compose tab
+            if (actionType === 'gmail') {
+                const plainTextSummary = generateSummaryText(filesAttached, downloadedFileName, fileListForText);
+                await navigator.clipboard.writeText(plainTextSummary);
+                
+                // Open Gmail Compose
+                const subject = encodeURIComponent(`${customBrandName || 'Insurance'} Quote Intake Form Summary`);
+                const bodyText = encodeURIComponent(`Hola,\n\nAdjunto los detalles del intake de seguro.\n\n[RESUMEN COPIADO AL PORTAPAPELES. PRESIONE Ctrl+V AQUÍ PARA PEGAR EL DETALLE DEL FORMULARIO]\n\n[ARRASTRE EL ARCHIVO DESCARGADO (${downloadedFileName}) AQUÍ PARA ADJUNTARLO]\n\n`);
+                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${bodyText}`;
+                
+                window.open(gmailUrl, '_blank');
+                
+                // Show Gmail confirmation instructions
+                showModal(t('gmailSuccessTitle'), t('gmailSuccessMsg'), 'success');
+            } else {
+                // Show generic Download confirmation modal
+                showModal(t('downloadSuccessTitle'), t('downloadSuccessMsg'), 'success');
+            }
+        }
+
+        /* --- Plain Text Summary Generation for Clipboard --- */
+        function generateSummaryText(filesAttached, downloadedFileName, fileListForText) {
+            let summary = `==================================================\n`;
+            summary += `${(customBrandName || "INSURANCE INTAKE FORM").toUpperCase()} - SUMMARY\n`;
+            summary += `==================================================\n\n`;
+
+            // DRIVERS
+            const driverBlocks = document.querySelectorAll('.driver-item');
+            summary += `--- ${t('driversSection').toUpperCase()} (${driverBlocks.length}) ---\n`;
+            driverBlocks.forEach((block, idx) => {
+                const id = block.getAttribute('data-id');
+                const fileInput = document.getElementById(`driver_file_${id}`);
+                const getVal = (field) => document.getElementById(`driver_${field}_${id}`).value || '-';
+                
+                summary += `Conductor / Driver ${idx + 1}:\n`;
+                summary += `  - ${t('fullName')}: ${getVal('name')}\n`;
+                summary += `  - ${t('dob')}: ${getVal('dob')}\n`;
+                summary += `  - ${t('address')}: ${getVal('address')}\n`;
+                summary += `  - ${t('phone')}: ${getVal('phone')}\n`;
+                summary += `  - ${t('email')}: ${getVal('email')}\n`;
+                summary += `  - ${t('licenseNum')}: ${getVal('license')}\n`;
+                summary += `  - ${t('occupation')}: ${getVal('occ')}\n`;
+                summary += `  - ${t('education')}: ${getVal('edu')}\n`;
+                summary += `  - ${t('maritalStatus')}: ${document.getElementById(`driver_marital_${id}`).options[document.getElementById(`driver_marital_${id}`).selectedIndex].text}\n`;
+                summary += `  - ${t('housingStatus')}: ${document.getElementById(`driver_housing_${id}`).options[document.getElementById(`driver_housing_${id}`).selectedIndex].text}\n`;
+                
+                const hasFile = fileInput && fileInput.files.length > 0 ? "Yes" : "No";
+                summary += `  - ${t('uploadLicense')}: ${hasFile}\n\n`;
+            });
+
+            // VEHICLES
+            const vehicleBlocks = document.querySelectorAll('.vehicle-item');
+            summary += `--- ${t('vehiclesSection').toUpperCase()} (${vehicleBlocks.length}) ---\n`;
+            vehicleBlocks.forEach((block, idx) => {
+                const id = block.getAttribute('data-id');
+                const fileInput = document.getElementById(`vehicle_file_${id}`);
+                const getVal = (field) => document.getElementById(`vehicle_${field}_${id}`).value || '-';
+                const finVal = document.getElementById(`vehicle_finance_${id}`).options[document.getElementById(`vehicle_finance_${id}`).selectedIndex].text;
+                
+                summary += `Vehículo / Vehicle ${idx + 1}:\n`;
+                summary += `  - ${t('vin')}: ${getVal('vin')}\n`;
+                summary += `  - ${t('year')} - ${t('makeModel')}: ${getVal('year')} ${getVal('make')}\n`;
+                summary += `  - ${t('yearPurchased')}: ${getVal('purchased')}\n`;
+                summary += `  - ${t('milesDriven')}: ${getVal('miles')}\n`;
+                summary += `  - ${t('vehiclePurpose')}: ${document.getElementById(`vehicle_purpose_${id}`).options[document.getElementById(`vehicle_purpose_${id}`).selectedIndex].text}\n`;
+                summary += `  - ${t('leaseFinance')}: ${finVal}\n`;
+                if (document.getElementById(`vehicle_finance_${id}`).value !== 'Owned') {
+                    summary += `  - ${t('bankInfo')}: ${getVal('bank')}\n`;
+                }
+                
+                const hasFile = fileInput && fileInput.files.length > 0 ? "Yes" : "No";
+                summary += `  - ${t('uploadRegistration')}: ${hasFile}\n\n`;
+            });
+
+            // PREVIOUS INSURANCE
+            summary += `--- ${t('prevInsuranceSection').toUpperCase()} ---\n`;
+            summary += `  - ${t('companyName')}: ${document.getElementById('ins_company').value || '-'}\n`;
+            summary += `  - ${t('expirationDate')}: ${document.getElementById('ins_exp').value || '-'}\n`;
+            summary += `  - ${t('policyNumber')}: ${document.getElementById('ins_policy').value || '-'}\n`;
+            const insFileInput = document.getElementById('ins_file');
+            const insHasFile = insFileInput && insFileInput.files.length > 0 ? "Yes" : "No";
+            summary += `  - ${t('uploadDecPage')}: ${insHasFile}\n\n`;
+
+            // COVERAGES
+            const covTypeDropdown = document.getElementById('cov_type');
+            summary += `--- ${t('coverageSection').toUpperCase()} ---\n`;
+            summary += `  - ${t('coverageType')}: ${covTypeDropdown.options[covTypeDropdown.selectedIndex].text}\n`;
+            summary += `  - ${t('pipAmount')}: ${document.getElementById('cov_pip_amount').value || '-'}\n`;
+            summary += `  - Notes: ${document.getElementById('cov_notes').value || '-'}\n\n`;
+
+            // BUNDLE FILE LIST
+            if (filesAttached) {
+                summary += `--- FILES ATTACHED IN BUNDLE (${downloadedFileName}) ---\n`;
+                fileListForText.forEach(fName => {
+                    summary += `  - ${fName}\n`;
+                });
+            } else {
+                summary += `--- NO ATTACHMENTS (Generated ${downloadedFileName} summary directly) ---\n`;
+            }
+
+            return summary;
         }
     </script>
 </body>
-
 </html>
