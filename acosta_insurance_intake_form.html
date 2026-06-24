@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acosta Insurance Group - Intake Form</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Client-side libraries for PDF and ZIP generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <style>
+        /* Custom scrollbar and minor tweaks */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        
+        /* The !important flag ensures Tailwind grid/flex classes don't override this when hidden */
+        .hidden-section { display: none !important; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans antialiased pb-20">
+
+    <!-- Sticky Header with Language Toggle -->
+    <div class="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2 text-blue-900">
+                <div class="font-serif font-bold text-2xl tracking-tighter">A</div>
+                <div class="leading-none border-l-2 border-blue-900 pl-2">
+                    <div class="font-bold text-sm tracking-widest">ACOSTA</div>
+                    <div class="text-[0.6rem] font-semibold tracking-widest text-gray-500">INSURANCE GROUP</div>
+                </div>
+            </div>
+            <div>
+                <button type="button" id="lang-es" class="font-bold text-blue-700 underline mx-1 outline-none">ES</button>
+                <span class="text-gray-400">|</span>
+                <button type="button" id="lang-en" class="text-gray-500 hover:text-blue-700 mx-1 outline-none">EN</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 mt-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 md:p-10 mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold text-center text-blue-900 mb-2" data-i18n="formTitle">Formulario de Cotización de Seguro</h1>
+            <p class="text-center text-gray-500 mb-8" data-i18n="formDesc">Complete la información a continuación o suba los documentos requeridos.</p>
+
+            <form id="intake-form" class="space-y-10">
+                
+                <!-- Section: Drivers -->
+                <section>
+                    <div class="flex justify-between items-end border-b-2 border-blue-900 pb-2 mb-4">
+                        <h2 class="text-xl font-bold text-blue-900 flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                            <span data-i18n="driversSection">Conductores</span>
+                        </h2>
+                        <button type="button" onclick="addDriver()" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200 transition font-semibold" data-i18n="addDriver">+ Agregar Conductor</button>
+                    </div>
+                    <div id="drivers-container" class="space-y-6">
+                        <!-- Drivers will be injected here -->
+                    </div>
+                </section>
+
+                <!-- Section: Vehicles -->
+                <section>
+                    <div class="flex justify-between items-end border-b-2 border-blue-900 pb-2 mb-4">
+                        <h2 class="text-xl font-bold text-blue-900 flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+                            <span data-i18n="vehiclesSection">Vehículos</span>
+                        </h2>
+                        <button type="button" onclick="addVehicle()" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200 transition font-semibold" data-i18n="addVehicle">+ Agregar Vehículo</button>
+                    </div>
+                    <div id="vehicles-container" class="space-y-6">
+                        <!-- Vehicles will be injected here -->
+                    </div>
+                </section>
+
+                <!-- Section: Previous Insurance -->
+                <section class="bg-gray-50 p-5 rounded-lg border border-gray-200 fade-in">
+                    <h2 class="text-xl font-bold text-blue-900 mb-4 border-b pb-2 flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span data-i18n="prevInsuranceSection">Seguro Anterior</span>
+                    </h2>
+                    
+                    <div class="mb-4 flex space-x-6">
+                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+                            <input type="radio" name="ins_mode" value="upload" checked class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                            <span data-i18n="uploadDecPage">Subir Página de Declaración</span>
+                        </label>
+                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+                            <input type="radio" name="ins_mode" value="manual" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                            <span data-i18n="enterManually">Ingresar Manualmente</span>
+                        </label>
+                    </div>
+
+                    <div id="ins_upload_section">
+                        <input type="file" id="ins_file" accept="image/*,.pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+
+                    <div id="ins_manual_section" class="hidden-section grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="companyName">Nombre de Compañía</label><input type="text" id="ins_company" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="expirationDate">Fecha de Vencimiento</label><input type="date" id="ins_exp" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="policyNumber">Número de Póliza</label><input type="text" id="ins_policy" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                    </div>
+                </section>
+
+                <!-- Section: Coverages -->
+                <section class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                    <h2 class="text-xl font-bold text-blue-900 mb-4 border-b pb-2 flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <span data-i18n="coverageSection">Opciones de Cobertura</span>
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2" data-i18n="coverageType">Tipo de Cobertura Deseada</label>
+                            <select id="cov_type" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="Full Coverage" data-i18n="fullCoverage">Cobertura Completa (Full Coverage)</option>
+                                <option value="Minimum Required" data-i18n="minimumCoverage">Mínima Requerida por Ley</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2" data-i18n="pipAmount">Cantidad de PIP (Protección de Lesiones)</label>
+                            <input type="text" id="cov_pip_amount" placeholder="$10,000" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2" data-i18n="otherCovRequests">Si necesita otra cobertura o tiene notas, indíquelo aquí:</label>
+                            <textarea id="cov_notes" rows="3" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Submit Button -->
+                <div class="text-center pt-6">
+                    <button type="submit" id="submit-btn" class="w-full md:w-auto px-8 py-4 bg-blue-800 text-white font-bold text-lg rounded-lg shadow-lg hover:bg-blue-900 transition flex justify-center items-center mx-auto outline-none">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span data-i18n="generateDocBtn">Generar Paquete de Cotización (PDF/ZIP)</span>
+                    </button>
+                    <p class="text-xs text-gray-500 mt-3" data-i18n="privacyNotice">Toda la información se procesa localmente en su dispositivo para su privacidad.</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Modal instead of window.alert() -->
+    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[100] flex items-center justify-center fade-in">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl text-center">
+            <h3 class="text-lg font-bold text-blue-900 mb-2" id="modal-title">Aviso</h3>
+            <p class="text-gray-600 mb-6" id="modal-message">Mensaje</p>
+            <button type="button" onclick="closeModal()" class="w-full bg-blue-800 text-white py-2 rounded font-semibold hover:bg-blue-900 transition outline-none">OK</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- State & Configuration --- */
+        let currentLang = 'es';
+        let internalIdCounter = 0; // Unique ID to avoid conflicts when removing/adding elements
+
+        const translations = {
+            es: {
+                formTitle: "Formulario de Cotización de Seguro",
+                formDesc: "Complete la información a continuación o suba los documentos requeridos. Se generará un archivo listo para su agente.",
+                driversSection: "Conductores",
+                addDriver: "+ Agregar Conductor",
+                driverTitle: "Conductor",
+                uploadLicense: "Subir Foto de Licencia",
+                enterManually: "Ingresar Manualmente",
+                fullName: "Nombre Completo",
+                address: "Dirección",
+                phone: "Teléfono",
+                dob: "Fecha de Nac.",
+                licenseNum: "Número de Licencia",
+                email: "Correo Electrónico",
+                occupation: "Ocupación",
+                education: "Nivel de Educación",
+                maritalStatus: "Estado Civil",
+                single: "Soltero/a",
+                married: "Casado/a",
+                divorced: "Divorciado/a",
+                widowed: "Viudo/a",
+                housingStatus: "Vivienda",
+                owner: "Propietario",
+                tenant: "Inquilino",
+                remove: "Eliminar",
+                vehiclesSection: "Vehículos",
+                addVehicle: "+ Agregar Vehículo",
+                vehicleTitle: "Vehículo",
+                uploadRegistration: "Subir Registro",
+                vin: "Número VIN",
+                year: "Año",
+                makeModel: "Marca y Modelo",
+                yearPurchased: "Año de Compra",
+                milesDriven: "Millas Anuales",
+                vehiclePurpose: "Propósito del Vehículo",
+                commuting: "Ir al Trabajo/Escuela",
+                business: "Negocios (Uber, Entregas, etc.)",
+                pleasure: "Placer/Uso Personal",
+                leaseFinance: "¿Arrendado o Financiado?",
+                noneOwn: "No (Propio)",
+                leased: "Arrendado (Lease)",
+                financed: "Financiado",
+                bankInfo: "Nombre del Banco y Dirección",
+                prevInsuranceSection: "Seguro Anterior",
+                uploadDecPage: "Subir Página de Declaración",
+                companyName: "Nombre de Compañía",
+                expirationDate: "Fecha de Vencimiento",
+                policyNumber: "Número de Póliza",
+                coverageSection: "Opciones de Cobertura",
+                coverageType: "Tipo de Cobertura Deseada",
+                fullCoverage: "Cobertura Completa (Full Coverage)",
+                minimumCoverage: "Mínima Requerida por Ley",
+                pipAmount: "Cantidad de PIP (Protección de Lesiones)",
+                otherCovRequests: "Si necesita otra cobertura o tiene notas, indíquelo aquí:",
+                generateDocBtn: "Generar Paquete de Cotización (PDF/ZIP)",
+                privacyNotice: "Toda la información se procesa localmente en su dispositivo para su privacidad y seguridad.",
+                fileProvidedText: "Documento proporcionado como archivo adjunto en el ZIP.",
+                processing: "Procesando...",
+                successTitle: "¡Éxito!",
+                errorTitle: "Error",
+                generateError: "Hubo un error al generar el documento. Por favor, intente de nuevo."
+            },
+            en: {
+                formTitle: "Insurance Quote Intake Form",
+                formDesc: "Fill out the information below or upload the required documents. A ready-to-send file will be generated for your agent.",
+                driversSection: "Drivers",
+                addDriver: "+ Add Driver",
+                driverTitle: "Driver",
+                uploadLicense: "Upload License Photo",
+                enterManually: "Enter Manually",
+                fullName: "Full Name",
+                address: "Address",
+                phone: "Telephone",
+                dob: "Date of Birth",
+                licenseNum: "License Number",
+                email: "Email",
+                occupation: "Occupation",
+                education: "Education Level",
+                maritalStatus: "Marital Status",
+                single: "Single",
+                married: "Married",
+                divorced: "Divorced",
+                widowed: "Widowed",
+                housingStatus: "Housing Status",
+                owner: "Homeowner",
+                tenant: "Tenant/Renter",
+                remove: "Remove",
+                vehiclesSection: "Vehicles",
+                addVehicle: "+ Add Vehicle",
+                vehicleTitle: "Vehicle",
+                uploadRegistration: "Upload Registration",
+                vin: "VIN Number",
+                year: "Year",
+                makeModel: "Make and Model",
+                yearPurchased: "Year Purchased",
+                milesDriven: "Miles Driven Annually",
+                vehiclePurpose: "Vehicle Purpose",
+                commuting: "Commuting",
+                business: "Business (Rideshare, Delivery, etc.)",
+                pleasure: "Pleasure/Personal",
+                leaseFinance: "Leased or Financed?",
+                noneOwn: "No (Owned)",
+                leased: "Leased",
+                financed: "Financed",
+                bankInfo: "Bank Name and Address",
+                prevInsuranceSection: "Previous Insurance",
+                uploadDecPage: "Upload Declaration Page",
+                companyName: "Company Name",
+                expirationDate: "Expiration Date",
+                policyNumber: "Policy Number",
+                coverageSection: "Coverage Options",
+                coverageType: "Desired Coverage Type",
+                fullCoverage: "Full Coverage",
+                minimumCoverage: "Minimum Required by Law",
+                pipAmount: "PIP Amount (Personal Injury Protection)",
+                otherCovRequests: "If you need another coverage or have notes, please request it here:",
+                generateDocBtn: "Generate Quote Package (PDF/ZIP)",
+                privacyNotice: "All information is processed locally on your device for privacy and security.",
+                fileProvidedText: "Document provided as an attachment in the ZIP file.",
+                processing: "Processing...",
+                successTitle: "Success!",
+                errorTitle: "Error",
+                generateError: "There was an error generating the document. Please try again."
+            }
+        };
+
+        /* --- Initialization --- */
+        document.addEventListener('DOMContentLoaded', () => {
+            addDriver();
+            addVehicle();
+            setupLangToggles();
+            setupInsuranceToggle();
+            updateLanguage();
+
+            // Form Submit Logic
+            document.getElementById('intake-form').addEventListener('submit', handleFormSubmit);
+        });
+
+        /* --- UI Logic --- */
+        function t(key) {
+            return translations[currentLang][key] || key;
+        }
+
+        function showModal(title, message) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = message;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        function updateLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    if (el.tagName === 'INPUT' && el.type === 'text' && el.placeholder) {
+                        // skip placeholder update unless specified
+                    } else {
+                        el.innerText = translations[currentLang][key];
+                    }
+                }
+            });
+            updateIndices(); // Refresh the labels that say "Driver 1", "Vehicle 2", etc.
+        }
+
+        function setupLangToggles() {
+            const btnEs = document.getElementById('lang-es');
+            const btnEn = document.getElementById('lang-en');
+
+            const setLang = (lang) => {
+                currentLang = lang;
+                if(lang === 'es') {
+                    btnEs.classList.add('font-bold', 'text-blue-700', 'underline');
+                    btnEs.classList.remove('text-gray-500', 'hover:text-blue-700');
+                    btnEn.classList.add('text-gray-500', 'hover:text-blue-700');
+                    btnEn.classList.remove('font-bold', 'text-blue-700', 'underline');
+                } else {
+                    btnEn.classList.add('font-bold', 'text-blue-700', 'underline');
+                    btnEn.classList.remove('text-gray-500', 'hover:text-blue-700');
+                    btnEs.classList.add('text-gray-500', 'hover:text-blue-700');
+                    btnEs.classList.remove('font-bold', 'text-blue-700', 'underline');
+                }
+                updateLanguage();
+            };
+
+            btnEs.addEventListener('click', () => setLang('es'));
+            btnEn.addEventListener('click', () => setLang('en'));
+        }
+
+        function setupInsuranceToggle() {
+            document.querySelectorAll('input[name="ins_mode"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const uploadSec = document.getElementById('ins_upload_section');
+                    const manualSec = document.getElementById('ins_manual_section');
+                    if (e.target.value === 'upload') {
+                        uploadSec.classList.remove('hidden-section');
+                        manualSec.classList.add('hidden-section');
+                    } else {
+                        uploadSec.classList.add('hidden-section');
+                        manualSec.classList.remove('hidden-section');
+                    }
+                });
+            });
+        }
+
+        /* --- Dynamic Form Elements --- */
+        function updateIndices() {
+            // Update drivers numbering
+            const driverItems = document.querySelectorAll('.driver-item');
+            driverItems.forEach((item, index) => {
+                const titleSpan = item.querySelector('.driver-num-title');
+                if (titleSpan) titleSpan.innerText = `${t('driverTitle')} ${index + 1}`;
+            });
+
+            // Update vehicles numbering
+            const vehicleItems = document.querySelectorAll('.vehicle-item');
+            vehicleItems.forEach((item, index) => {
+                const titleSpan = item.querySelector('.vehicle-num-title');
+                if (titleSpan) titleSpan.innerText = `${t('vehicleTitle')} ${index + 1}`;
+            });
+        }
+
+        function addDriver() {
+            const id = internalIdCounter++;
+            const container = document.getElementById('drivers-container');
+            const html = `
+                <div id="driver_block_${id}" class="bg-gray-50 p-5 rounded-lg border border-gray-200 relative fade-in driver-item" data-id="${id}">
+                    <button type="button" onclick="removeElement('driver_block_${id}')" class="absolute top-4 right-4 text-red-500 hover:text-red-700 text-sm font-semibold outline-none" data-i18n="remove">${t('remove')}</button>
+                    <h3 class="font-bold text-lg text-gray-700 mb-3 driver-num-title">${t('driverTitle')}</h3>
+                    
+                    <div class="mb-4 flex space-x-6">
+                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+                            <input type="radio" name="driver_mode_${id}" value="upload" checked class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                            <span data-i18n="uploadLicense">${t('uploadLicense')}</span>
+                        </label>
+                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+                            <input type="radio" name="driver_mode_${id}" value="manual" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                            <span data-i18n="enterManually">${t('enterManually')}</span>
+                        </label>
+                    </div>
+
+                    <div id="driver_upload_${id}">
+                        <input type="file" id="driver_file_${id}" accept="image/*,.pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 outline-none">
+                    </div>
+
+                    <div id="driver_manual_${id}" class="hidden-section grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="fullName">${t('fullName')}</label><input type="text" id="driver_name_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="dob">${t('dob')}</label><input type="date" id="driver_dob_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="address">${t('address')}</label><input type="text" id="driver_address_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="phone">${t('phone')}</label><input type="tel" id="driver_phone_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="email">${t('email')}</label><input type="email" id="driver_email_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="licenseNum">${t('licenseNum')}</label><input type="text" id="driver_license_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="occupation">${t('occupation')}</label><input type="text" id="driver_occ_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="education">${t('education')}</label><input type="text" id="driver_edu_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="maritalStatus">${t('maritalStatus')}</label>
+                            <select id="driver_marital_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="Single" data-i18n="single">${t('single')}</option>
+                                <option value="Married" data-i18n="married">${t('married')}</option>
+                                <option value="Divorced" data-i18n="divorced">${t('divorced')}</option>
+                                <option value="Widowed" data-i18n="widowed">${t('widowed')}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="housingStatus">${t('housingStatus')}</label>
+                            <select id="driver_housing_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="Owner" data-i18n="owner">${t('owner')}</option>
+                                <option value="Tenant" data-i18n="tenant">${t('tenant')}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+            
+            // Toggle Logic
+            document.querySelectorAll(`input[name="driver_mode_${id}"]`).forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const upSec = document.getElementById(`driver_upload_${id}`);
+                    const manSec = document.getElementById(`driver_manual_${id}`);
+                    if (e.target.value === 'upload') {
+                        upSec.classList.remove('hidden-section'); 
+                        manSec.classList.add('hidden-section');
+                    } else {
+                        upSec.classList.add('hidden-section'); 
+                        manSec.classList.remove('hidden-section');
+                    }
+                });
+            });
+            updateLanguage(); 
+        }
+
+        function addVehicle() {
+            const id = internalIdCounter++;
+            const container = document.getElementById('vehicles-container');
+            const html = `
+                <div id="vehicle_block_${id}" class="bg-gray-50 p-5 rounded-lg border border-gray-200 relative fade-in vehicle-item" data-id="${id}">
+                    <button type="button" onclick="removeElement('vehicle_block_${id}')" class="absolute top-4 right-4 text-red-500 hover:text-red-700 text-sm font-semibold outline-none" data-i18n="remove">${t('remove')}</button>
+                    <h3 class="font-bold text-lg text-gray-700 mb-3 vehicle-num-title">${t('vehicleTitle')}</h3>
+                    
+                    <div class="mb-4 flex space-x-6">
+                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+                            <input type="radio" name="vehicle_mode_${id}" value="upload" checked class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                            <span data-i18n="uploadRegistration">${t('uploadRegistration')}</span>
+                        </label>
+                        <label class="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+                            <input type="radio" name="vehicle_mode_${id}" value="manual" class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                            <span data-i18n="enterManually">${t('enterManually')}</span>
+                        </label>
+                    </div>
+
+                    <div id="vehicle_upload_${id}">
+                        <input type="file" id="vehicle_file_${id}" accept="image/*,.pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 outline-none">
+                    </div>
+
+                    <div id="vehicle_manual_${id}" class="hidden-section grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="vin">${t('vin')}</label><input type="text" id="vehicle_vin_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="year">${t('year')}</label><input type="number" id="vehicle_year_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="makeModel">${t('makeModel')}</label><input type="text" id="vehicle_make_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="yearPurchased">${t('yearPurchased')}</label><input type="number" id="vehicle_purchased_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="milesDriven">${t('milesDriven')}</label><input type="number" id="vehicle_miles_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="vehiclePurpose">${t('vehiclePurpose')}</label>
+                            <select id="vehicle_purpose_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="Commuting" data-i18n="commuting">${t('commuting')}</option>
+                                <option value="Pleasure" data-i18n="pleasure">${t('pleasure')}</option>
+                                <option value="Business" data-i18n="business">${t('business')}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="leaseFinance">${t('leaseFinance')}</label>
+                            <select id="vehicle_finance_${id}" onchange="toggleBankInfo(${id})" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="Owned" data-i18n="noneOwn">${t('noneOwn')}</option>
+                                <option value="Leased" data-i18n="leased">${t('leased')}</option>
+                                <option value="Financed" data-i18n="financed">${t('financed')}</option>
+                            </select>
+                        </div>
+                        <div id="vehicle_bank_container_${id}" class="hidden-section">
+                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" data-i18n="bankInfo">${t('bankInfo')}</label>
+                            <input type="text" id="vehicle_bank_${id}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+            
+            document.querySelectorAll(`input[name="vehicle_mode_${id}"]`).forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const upSec = document.getElementById(`vehicle_upload_${id}`);
+                    const manSec = document.getElementById(`vehicle_manual_${id}`);
+                    if (e.target.value === 'upload') {
+                        upSec.classList.remove('hidden-section'); 
+                        manSec.classList.add('hidden-section');
+                    } else {
+                        upSec.classList.add('hidden-section'); 
+                        manSec.classList.remove('hidden-section');
+                    }
+                });
+            });
+            updateLanguage();
+        }
+
+        function toggleBankInfo(id) {
+            const select = document.getElementById(`vehicle_finance_${id}`);
+            const container = document.getElementById(`vehicle_bank_container_${id}`);
+            if (select.value === 'Leased' || select.value === 'Financed') {
+                container.classList.remove('hidden-section');
+            } else {
+                container.classList.add('hidden-section');
+            }
+        }
+
+        function removeElement(elementId) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.remove();
+                updateIndices(); // Re-calculate the numbers so they are sequential
+            }
+        }
+
+        /* --- Utilities --- */
+        // Attempt to fetch the Clearbit logo and convert to base64 for jsPDF
+        function getBase64ImageFromUrl(imageUrl) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    const dataURL = canvas.toDataURL('image/png');
+                    resolve(dataURL);
+                };
+                img.onerror = reject;
+                img.src = imageUrl;
+            });
+        }
+
+        /* --- PDF Generation & Submit Logic --- */
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submit-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = t('processing');
+            btn.disabled = true;
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const zip = new JSZip();
+                let filesAttached = false;
+
+                // --- PDF HEADER (Logo Logic) ---
+                let logoLoaded = false;
+                try {
+                    // Try to fetch official logo from clearbit
+                    const logoBase64 = await getBase64ImageFromUrl('https://logo.clearbit.com/acostainsurance.com');
+                    doc.addImage(logoBase64, 'PNG', 14, 10, 40, 40); // Attempt to place it nicely
+                    logoLoaded = true;
+                } catch (e) {
+                    // Silently fail and use fallback text logo
+                    console.log("Logo could not be fetched, using fallback styling.");
+                }
+
+                if (!logoLoaded) {
+                    // Fallback Styled Text Logo
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(23, 54, 93); // Blue-900 equivalent
+                    doc.setFontSize(28);
+                    doc.text("A", 14, 20);
+                    
+                    doc.setFontSize(14);
+                    doc.text("ACOSTA", 24, 16);
+                    doc.setFontSize(8);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text("INSURANCE GROUP", 24, 21);
+                }
+                
+                doc.setDrawColor(23, 54, 93);
+                doc.setLineWidth(0.5);
+                doc.line(14, 26, 196, 26);
+                
+                doc.setFontSize(16);
+                doc.setTextColor(0, 0, 0);
+                doc.text(t('formTitle'), 14, 34);
+
+                let currentY = 42;
+
+                // Helper to render tables via autoTable
+                const addSectionTable = (title, bodyData) => {
+                    if (currentY > 260) { doc.addPage(); currentY = 20; }
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(23, 54, 93);
+                    doc.text(title, 14, currentY);
+                    
+                    doc.autoTable({
+                        startY: currentY + 4,
+                        theme: 'grid',
+                        headStyles: { fillColor: [23, 54, 93] },
+                        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 65 } },
+                        body: bodyData,
+                        margin: { left: 14, right: 14 }
+                    });
+                    currentY = doc.lastAutoTable.finalY + 12;
+                };
+
+                // --- DRIVERS ---
+                const driverBlocks = document.querySelectorAll('.driver-item');
+                let dCounter = 1;
+                for (const block of driverBlocks) {
+                    const id = block.getAttribute('data-id');
+                    const mode = document.querySelector(`input[name="driver_mode_${id}"]:checked`).value;
+                    let body = [];
+                    
+                    if (mode === 'upload') {
+                        const fileInput = document.getElementById(`driver_file_${id}`);
+                        if (fileInput.files.length > 0) {
+                            const file = fileInput.files[0];
+                            const ext = file.name.split('.').pop();
+                            zip.file(`Driver_${dCounter}_License.${ext}`, file);
+                            filesAttached = true;
+                            body.push([t('uploadLicense'), t('fileProvidedText')]);
+                        } else {
+                            body.push([t('uploadLicense'), 'No file uploaded / Ningún archivo subido']);
+                        }
+                    } else {
+                        const getVal = (field) => document.getElementById(`driver_${field}_${id}`).value || '-';
+                        body = [
+                            [t('fullName'), getVal('name')],
+                            [t('dob'), getVal('dob')],
+                            [t('address'), getVal('address')],
+                            [t('phone'), getVal('phone')],
+                            [t('email'), getVal('email')],
+                            [t('licenseNum'), getVal('license')],
+                            [t('occupation'), getVal('occ')],
+                            [t('education'), getVal('edu')],
+                            [t('maritalStatus'), document.getElementById(`driver_marital_${id}`).options[document.getElementById(`driver_marital_${id}`).selectedIndex].text],
+                            [t('housingStatus'), document.getElementById(`driver_housing_${id}`).options[document.getElementById(`driver_housing_${id}`).selectedIndex].text],
+                        ];
+                    }
+                    addSectionTable(`${t('driverTitle')} ${dCounter}`, body);
+                    dCounter++;
+                }
+
+                // --- VEHICLES ---
+                const vehicleBlocks = document.querySelectorAll('.vehicle-item');
+                let vCounter = 1;
+                for (const block of vehicleBlocks) {
+                    const id = block.getAttribute('data-id');
+                    const mode = document.querySelector(`input[name="vehicle_mode_${id}"]:checked`).value;
+                    let body = [];
+                    
+                    if (mode === 'upload') {
+                        const fileInput = document.getElementById(`vehicle_file_${id}`);
+                        if (fileInput.files.length > 0) {
+                            const file = fileInput.files[0];
+                            const ext = file.name.split('.').pop();
+                            zip.file(`Vehicle_${vCounter}_Registration.${ext}`, file);
+                            filesAttached = true;
+                            body.push([t('uploadRegistration'), t('fileProvidedText')]);
+                        } else {
+                            body.push([t('uploadRegistration'), 'No file uploaded / Ningún archivo subido']);
+                        }
+                    } else {
+                        const getVal = (field) => document.getElementById(`vehicle_${field}_${id}`).value || '-';
+                        const finVal = document.getElementById(`vehicle_finance_${id}`).options[document.getElementById(`vehicle_finance_${id}`).selectedIndex].text;
+                        body = [
+                            [t('vin'), getVal('vin')],
+                            [t('year'), getVal('year')],
+                            [t('makeModel'), getVal('make')],
+                            [t('yearPurchased'), getVal('purchased')],
+                            [t('milesDriven'), getVal('miles')],
+                            [t('vehiclePurpose'), document.getElementById(`vehicle_purpose_${id}`).options[document.getElementById(`vehicle_purpose_${id}`).selectedIndex].text],
+                            [t('leaseFinance'), finVal],
+                        ];
+                        if (document.getElementById(`vehicle_finance_${id}`).value !== 'Owned') {
+                            body.push([t('bankInfo'), getVal('bank')]);
+                        }
+                    }
+                    addSectionTable(`${t('vehicleTitle')} ${vCounter}`, body);
+                    vCounter++;
+                }
+
+                // --- PREVIOUS INSURANCE ---
+                const insMode = document.querySelector('input[name="ins_mode"]:checked').value;
+                let insBody = [];
+                if (insMode === 'upload') {
+                    const fileInput = document.getElementById('ins_file');
+                    if (fileInput.files.length > 0) {
+                        const file = fileInput.files[0];
+                        const ext = file.name.split('.').pop();
+                        zip.file(`Previous_Insurance_DecPage.${ext}`, file);
+                        filesAttached = true;
+                        insBody.push([t('uploadDecPage'), t('fileProvidedText')]);
+                    } else {
+                        insBody.push([t('uploadDecPage'), 'No file uploaded / Ningún archivo subido']);
+                    }
+                } else {
+                    insBody = [
+                        [t('companyName'), document.getElementById('ins_company').value || '-'],
+                        [t('expirationDate'), document.getElementById('ins_exp').value || '-'],
+                        [t('policyNumber'), document.getElementById('ins_policy').value || '-']
+                    ];
+                }
+                addSectionTable(t('prevInsuranceSection'), insBody);
+
+                // --- COVERAGES ---
+                const covTypeDropdown = document.getElementById('cov_type');
+                const covBody = [
+                    [t('coverageType'), covTypeDropdown.options[covTypeDropdown.selectedIndex].text],
+                    [t('pipAmount'), document.getElementById('cov_pip_amount').value || '-'],
+                    ['Notes / Requests', document.getElementById('cov_notes').value || '-']
+                ];
+                addSectionTable(t('coverageSection'), covBody);
+
+                // --- SAVE / EXPORT ---
+                const pdfBlob = doc.output('blob');
+
+                if (filesAttached) {
+                    zip.file("Acosta_Insurance_Form_Data.pdf", pdfBlob);
+                    const content = await zip.generateAsync({type:"blob"});
+                    saveAs(content, "Acosta_Insurance_Quote_Package.zip");
+                } else {
+                    saveAs(pdfBlob, "Acosta_Insurance_Quote.pdf");
+                }
+
+            } catch (err) {
+                console.error(err);
+                showModal(t('errorTitle'), t('generateError'));
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
