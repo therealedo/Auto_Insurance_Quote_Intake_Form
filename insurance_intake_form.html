@@ -130,7 +130,11 @@
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1" data-i18n="agencySub">Subtítulo / Subtitle</label>
                     <input type="text" id="config-brand-sub" placeholder="Intake & Quotes Form" class="w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" oninput="saveBrandingConfig()">
                 </div>
-                <div class="md:col-span-2">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1" data-i18n="emailToLabel">Destinatario del Correo / Gmail Recipient (To)</label>
+                    <input type="email" id="config-email-to" placeholder="agent@agency.com" class="w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" oninput="saveBrandingConfig()">
+                </div>
+                <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1" data-i18n="emailSubjectLabel">Plantilla de Asunto de Gmail / Gmail Subject Template</label>
                     <input type="text" id="config-email-subject" placeholder="[AGENCY NAME] AUTO QUOTE REQUEST" class="w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" oninput="saveBrandingConfig()">
                 </div>
@@ -411,7 +415,8 @@
                 agentNameLabel: "Nombre del Agente",
                 principalContactBadge: "Contacto Principal",
                 availableDate: "Fecha de Disponibilidad",
-                emailSubjectLabel: "Plantilla de Asunto de Gmail"
+                emailSubjectLabel: "Plantilla de Asunto de Gmail",
+                emailToLabel: "Destinatario del Correo (To)"
             },
             en: {
                 docTitle: "Insurance Quote Intake Form",
@@ -495,7 +500,8 @@
                 agentNameLabel: "Agent Name",
                 principalContactBadge: "Principal Contact",
                 availableDate: "Available Date",
-                emailSubjectLabel: "Gmail Subject Template"
+                emailSubjectLabel: "Gmail Subject Template",
+                emailToLabel: "Gmail Recipient (To)"
             }
         };
 
@@ -521,15 +527,18 @@
         }
 
         let customEmailSubject = '';
+        let customEmailTo = '';
 
         function loadBrandingConfig() {
             customBrandName = localStorage.getItem('customBrandName') || '';
             customBrandSub = localStorage.getItem('customBrandSub') || '';
             customEmailSubject = localStorage.getItem('customEmailSubject') || '[AGENCY NAME] AUTO QUOTE REQUEST';
+            customEmailTo = localStorage.getItem('customEmailTo') || '';
 
             document.getElementById('config-brand-name').value = customBrandName;
             document.getElementById('config-brand-sub').value = customBrandSub;
             document.getElementById('config-email-subject').value = customEmailSubject;
+            document.getElementById('config-email-to').value = customEmailTo;
 
             const savedAgentName = localStorage.getItem('customAgentName') || '';
             const agentField = document.getElementById('agent_name');
@@ -544,10 +553,12 @@
             customBrandName = document.getElementById('config-brand-name').value.trim();
             customBrandSub = document.getElementById('config-brand-sub').value.trim();
             customEmailSubject = document.getElementById('config-email-subject').value.trim();
+            customEmailTo = document.getElementById('config-email-to').value.trim();
 
             localStorage.setItem('customBrandName', customBrandName);
             localStorage.setItem('customBrandSub', customBrandSub);
             localStorage.setItem('customEmailSubject', customEmailSubject);
+            localStorage.setItem('customEmailTo', customEmailTo);
 
             applyBrandingUI();
         }
@@ -1150,7 +1161,8 @@
                 
                 const subject = encodeURIComponent(subjectLine);
                 const bodyText = encodeURIComponent(`Hola,\n\nAdjunto los detalles del intake de seguro.\n\n${plainTextSummary}\n\n[ARRASTRE EL ARCHIVO DESCARGADO (${downloadedFileName}) AQUÍ PARA ADJUNTARLO]\n\n`);
-                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${bodyText}`;
+                const toField = encodeURIComponent(customEmailTo);
+                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${toField}&su=${subject}&body=${bodyText}`;
                 
                 window.open(gmailUrl, '_blank');
                 
@@ -1173,20 +1185,11 @@
             if (firstDriverBlock) {
                 const id = firstDriverBlock.getAttribute('data-id');
                 const getVal = (field) => document.getElementById(`driver_${field}_${id}`).value || '-';
-                const getMarital = () => document.getElementById(`driver_marital_${id}`).options[document.getElementById(`driver_marital_${id}`).selectedIndex].text;
-                const getHousing = () => document.getElementById(`driver_housing_${id}`).options[document.getElementById(`driver_housing_${id}`).selectedIndex].text;
                 const getAvailable = () => document.getElementById(`driver_available_${id}`).value || '-';
 
                 summary += `${t('fullName')}: ${getVal('name')}\n`;
-                summary += `${t('dob')}: ${getVal('dob')}\n`;
-                summary += `${t('address')}: ${getVal('address')}\n`;
                 summary += `${t('phone')}: ${getVal('phone')}\n`;
-                summary += `${t('email')}: ${getVal('email')}\n`;
-                summary += `${t('licenseNum')}: ${getVal('license')}\n`;
-                summary += `${t('occupation')}: ${getVal('occ')}\n`;
-                summary += `${t('education')}: ${getVal('edu')}\n`;
-                summary += `${t('maritalStatus')}: ${getMarital()}\n`;
-                summary += `${t('housingStatus')}: ${getHousing()}\n`;
+                summary += `${t('address')}: ${getVal('address')}\n`;
                 summary += `${t('availableDate')}: ${getAvailable()}\n`;
             } else {
                 summary += `No principal contact information available.\n`;
